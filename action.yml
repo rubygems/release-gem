@@ -21,7 +21,7 @@ runs:
         # Attribute commits to the last committer on HEAD
         git config --global user.email "$(git log -1 --pretty=format:'%ae')"
         git config --global user.name "$(git log -1 --pretty=format:'%an')"
-        git remote set-url origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY"
+        git remote set-url origin "https://x-access-token:${{ github.token }}@github.com/$GITHUB_REPOSITORY"
       shell: bash
     - name: Configure trusted publishing credentials
       if: ${{ inputs.setup-trusted-publisher }}
