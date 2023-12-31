@@ -33,7 +33,6 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          bundler-cache: true
           ruby-version: ruby
 
       # Release

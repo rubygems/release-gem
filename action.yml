@@ -27,7 +27,7 @@ runs:
       if: ${{ inputs.setup-trusted-publisher }}
       uses: rubygems/configure-rubygems-credentials@v1.0.0
     - name: Run release rake task
-      run: bundle exec rake release
+      run: rake -f -r bundler/gem_tasks release
       shell: bash
     - name: Wait for release to propagate
       if: ${{ inputs.await-release }}
