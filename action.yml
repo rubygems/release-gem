@@ -24,12 +24,12 @@ runs:
         git remote set-url origin "https://x-access-token:${{ github.token }}@github.com/$GITHUB_REPOSITORY"
       shell: bash
     - name: Configure trusted publishing credentials
-      if: ${{ inputs.setup-trusted-publisher }}
+      if: ${{ inputs.setup-trusted-publisher == 'true' }}
       uses: rubygems/configure-rubygems-credentials@v1.0.0
     - name: Run release rake task
       run: bundle exec rake release
       shell: bash
     - name: Wait for release to propagate
-      if: ${{ inputs.await-release }}
+      if: ${{ inputs.await-release == 'true' }}
       run: gem exec rubygems-await pkg/*.gem
       shell: bash
