@@ -6,7 +6,7 @@ This action allows you to automate releasing your gems to RubyGems.org.
 
 ### Trusted Publishing
 
-This example jumps right into RubyGems.org's current reccomended best practice.
+This example jumps right into RubyGems.org's current recommended best practice.
 
 This action supports RubyGems.org's [trusted publishing] implementation,
 which allows authenticating to RubyGems.org without manually configuring secrets.
