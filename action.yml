@@ -29,6 +29,10 @@ runs:
     - name: Run release rake task
       run: bundle exec rake release
       shell: bash
+    - name: Attest
+      uses: actions/attest-build-provenance@v1
+      with:
+        subject-path: "${{ github.workspace }}/pkg/*.gem"
     - name: Wait for release to propagate
       if: ${{ inputs.await-release == 'true' }}
       run: gem exec rubygems-await pkg/*.gem
