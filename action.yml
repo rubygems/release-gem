@@ -23,6 +23,10 @@ inputs:
       Only works with RubyGems.org via Trusted Publishing.
     required: false
     default: "true"
+  working-directory:
+    description: "The working directory to run the release rake task in"
+    required: false
+    default: ""
 outputs: {}
 branding:
   color: "red"
@@ -49,18 +53,22 @@ runs:
     - name: Fetch tags
       run: git fetch --tags --force
       shell: bash
+      working-directory: ${{ inputs.working-directory }}
     - name: Configure trusted publishing credentials
       if: ${{ inputs.setup-trusted-publisher == 'true' }}
       uses: rubygems/configure-rubygems-credentials@bc6dd217f8a4f919d6835fcfefd470ef821f5c44 # v1.0.0
+      working-directory: ${{ inputs.working-directory }}
     - name: Run release rake task
       run: bundle exec rake release
       shell: bash
       env:
         RUBYOPT: "${{ inputs.attestations == 'true' && format('-r{0}/rubygems-attestation-patch.rb {1}', github.action_path, env.RUBYOPT) || env.RUBYOPT }}"
+      working-directory: ${{ inputs.working-directory }}
     - name: Wait for release to propagate
       if: ${{ inputs.await-release == 'true' }}
       run: gem exec rubygems-await pkg/*.gem
       shell: bash
+      working-directory: ${{ inputs.working-directory }}
     - name: Clean up credentials
       if: always()
       run: git credential-cache exit || true
