@@ -9,6 +9,13 @@ inputs:
     description: "Whether to setup the trusted publisher for the gem"
     required: false
     default: "true"
+  attestations:
+    description: >-
+      [EXPERIMENTAL]
+      Enable experimental support for sigstore attestations.
+      Only works with RubyGems.org via Trusted Publishing.
+    required: false
+    default: "true"
 outputs: {}
 branding:
   color: "red"
@@ -29,6 +36,8 @@ runs:
     - name: Run release rake task
       run: bundle exec rake release
       shell: bash
+      env:
+        RUBYOPT: "${{ inputs.attestations == 'true' && format('-r{0}/rubygems-attestation-patch.rb {1}', github.action_path, env.RUBYOPT) || env.RUBYOPT }}"
     - name: Wait for release to propagate
       if: ${{ inputs.await-release == 'true' }}
       run: gem exec rubygems-await pkg/*.gem
