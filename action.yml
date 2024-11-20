@@ -32,7 +32,7 @@ runs:
       shell: bash
     - name: Configure trusted publishing credentials
       if: ${{ inputs.setup-trusted-publisher == 'true' }}
-      uses: rubygems/configure-rubygems-credentials@a2b9242bc411d79356771fc9b9ddebcc3cd1b5dd
+      uses: rubygems/configure-rubygems-credentials@v1.0.0
     - name: Run release rake task
       run: bundle exec rake release
       shell: bash
