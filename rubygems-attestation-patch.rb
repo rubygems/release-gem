@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+return if RUBY_ENGINE == "jruby"
 return unless defined?(Gem)
 
 require "rubygems/commands/push_command"
