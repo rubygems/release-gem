@@ -30,6 +30,9 @@ runs:
         git config --global user.name "$(git log -1 --pretty=format:'%an')"
         git remote set-url origin "https://x-access-token:${{ github.token }}@github.com/$GITHUB_REPOSITORY"
       shell: bash
+    - name: Fetch tags
+      run: git fetch --tags
+      shell: bash
     - name: Configure trusted publishing credentials
       if: ${{ inputs.setup-trusted-publisher == 'true' }}
       uses: rubygems/configure-rubygems-credentials@v1.0.0
