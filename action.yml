@@ -28,10 +28,16 @@ runs:
         git config --global user.email "$(git log -1 --pretty=format:'%ae')"
         git config --global user.name "$(git log -1 --pretty=format:'%an')"
       shell: bash
-    - name: Configure temporary Git credentials
+    - name: Configure Git using cached credentials
       run: |
+        git credential-cache --timeout=300 store <<EOF
+        protocol=https
+        host=github.com
+        username=x-access-token
+        password=${{ github.token }}
+
+        EOF
         git config --local credential.helper 'cache --timeout=300'
-        echo -e "protocol=https\nhost=github.com\nusername=x-access-token\npassword=${{ github.token }}" | git credential approve
       shell: bash
     - name: Configure trusted publishing credentials
       if: ${{ inputs.setup-trusted-publisher == 'true' }}
