@@ -23,12 +23,21 @@ branding:
 runs:
   using: "composite"
   steps:
-    - name: Set remote URL
+    - name: Attribute commits to last committer
       run: |
-        # Attribute commits to the last committer on HEAD
         git config --global user.email "$(git log -1 --pretty=format:'%ae')"
         git config --global user.name "$(git log -1 --pretty=format:'%an')"
-        git remote set-url origin "https://x-access-token:${{ github.token }}@github.com/$GITHUB_REPOSITORY"
+      shell: bash
+    - name: Configure Git using cached credentials
+      run: |
+        git credential-cache --timeout=300 store <<EOF
+        protocol=https
+        host=github.com
+        username=x-access-token
+        password=${{ github.token }}
+
+        EOF
+        git config --local credential.helper 'cache --timeout=300'
       shell: bash
     - name: Configure trusted publishing credentials
       if: ${{ inputs.setup-trusted-publisher == 'true' }}
@@ -41,4 +50,8 @@ runs:
     - name: Wait for release to propagate
       if: ${{ inputs.await-release == 'true' }}
       run: gem exec rubygems-await pkg/*.gem
+      shell: bash
+    - name: Clean up credentials
+      if: always()
+      run: git credential-cache exit || true
       shell: bash
