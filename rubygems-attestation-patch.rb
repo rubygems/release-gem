@@ -45,24 +45,16 @@ Gem::Commands::PushCommand.prepend(Module.new do
     puts "[ATTESTATION DEBUG] attest! method called for #{name}"
     require "open3"
 
-    # Install specific_install gem
-    puts "[ATTESTATION DEBUG] Installing specific_install gem"
-    install_specific_install = [Gem.ruby, "-S", "gem", "install", "specific_install", "--no-document"]
-    puts "[ATTESTATION DEBUG] Running: #{install_specific_install.inspect}"
-    out, st = Open3.capture2e(*install_specific_install)
-    puts "[ATTESTATION DEBUG] specific_install install output:\n#{out}"
-    raise Gem::Exception, "Failed to install specific_install:\n\n#{out}" unless st.success?
-
-    # Use specific_install to install sigstore from the GitHub SHA
-    puts "[ATTESTATION DEBUG] Using specific_install to install sigstore from GitHub SHA"
-    specific_install_cmd = [
-      Gem.ruby, "-S", "gem", "specific_install",
-      "-l", "https://github.com/sigstore/sigstore-ruby",
-      "-b", "ce93acf7fa7e26ba81ff21820848d7df2273a557"
+    # Install sigstore and sigstore-cli from the GitHub SHA
+    puts "[ATTESTATION DEBUG] Installing sigstore from GitHub SHA"
+    install_cmd = [
+      Gem.ruby, "-S", "gem", "install",
+      "--no-document",
+      "git+https://github.com/sigstore/sigstore-ruby.git@ce93acf7fa7e26ba81ff21820848d7df2273a557"
     ]
-    puts "[ATTESTATION DEBUG] Running: #{specific_install_cmd.inspect}"
-    out, st = Open3.capture2e(*specific_install_cmd)
-    puts "[ATTESTATION DEBUG] specific_install output:\n#{out}"
+    puts "[ATTESTATION DEBUG] Running: #{install_cmd.inspect}"
+    out, st = Open3.capture2e(*install_cmd)
+    puts "[ATTESTATION DEBUG] Install output:\n#{out}"
     raise Gem::Exception, "Failed to install sigstore from GitHub:\n\n#{out}" unless st.success?
     puts "[ATTESTATION DEBUG] Gem installation succeeded"
 
