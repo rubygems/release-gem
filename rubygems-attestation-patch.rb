@@ -7,22 +7,30 @@ require "rubygems/commands/push_command"
 
 Gem::Commands::PushCommand.prepend(Module.new do
   def send_push_request(name, args)
+    puts "[ATTESTATION DEBUG] send_push_request called for #{name}"
+    puts "[ATTESTATION DEBUG] attestations option: #{options[:attestations]&.any?}, host: #{@host}"
     return super if options[:attestations]&.any? || @host != "https://rubygems.org"
 
     begin
+      puts "[ATTESTATION DEBUG] Attempting attestation-based push"
       send_push_request_with_attestation(name, args)
     rescue StandardError => e
+      puts "[ATTESTATION DEBUG] Attestation failed with error: #{e.class} - #{e.message}"
       alert_warning "Failed to push with attestation, retrying without attestation.\n#{e.full_message}"
       super
     end
   end
 
   def send_push_request_with_attestation(name, args)
+    puts "[ATTESTATION DEBUG] send_push_request_with_attestation called"
     attestation = attest!(name)
+    puts "[ATTESTATION DEBUG] Attestation completed, bundle file: #{attestation}"
     if options[:attestations]
+      puts "[ATTESTATION DEBUG] Adding attestation to options"
       options[:attestations] << attestation
       send_push_request(name, args)
     else
+      puts "[ATTESTATION DEBUG] Sending push with attestation via multipart request"
       rubygems_api_request(*args, scope: get_push_scope) do |request|
         request.set_form([
                            ["gem", Gem.read_binary(name), { filename: name, content_type: "application/octet-stream" }],
@@ -34,24 +42,43 @@ Gem::Commands::PushCommand.prepend(Module.new do
   end
 
   def attest!(name)
+    puts "[ATTESTATION DEBUG] attest! method called for #{name}"
     require "open3"
     require "bundler/inline"
 
-    # Install sigstore-ruby from the GitHub SHA
-    gemfile do
-      gem "sigstore-cli", github: "sigstore/sigstore-ruby", ref: "ce93acf7fa7e26ba81ff21820848d7df2273a557", glob: "cli/sigstore-cli.gemspec"
+    # Install sigstore-cli from the GitHub SHA
+    puts "[ATTESTATION DEBUG] Starting bundler/inline to install sigstore-cli"
+    begin
+      gemfile do
+        gem "sigstore-cli", github: "sigstore/sigstore-ruby", ref: "ce93acf7fa7e26ba81ff21820848d7df2273a557", glob: "cli/sigstore-cli.gemspec"
+      end
+      puts "[ATTESTATION DEBUG] bundler/inline succeeded, gems installed"
+    rescue => e
+      puts "[ATTESTATION DEBUG] bundler/inline failed: #{e.class} - #{e.message}"
+      raise
     end
 
     bundle = "#{name}.sigstore.json"
+    puts "[ATTESTATION DEBUG] Bundle output file will be: #{bundle}"
+
     env = defined?(Bundler.unbundled_env) ? Bundler.unbundled_env : ENV.to_h
+    puts "[ATTESTATION DEBUG] Using unbundled env: #{defined?(Bundler.unbundled_env)}"
+
+    cmd = [Gem.ruby, "-S", "gem", "exec", "sigstore-cli", "sign", name, "--bundle", bundle]
+    puts "[ATTESTATION DEBUG] About to run command: #{cmd.inspect}"
+
     out, st = Open3.capture2e(
       env,
-      Gem.ruby, "-S", "gem", "exec",
-      "sigstore-cli", "sign", name, "--bundle", bundle,
+      *cmd,
       unsetenv_others: true
     )
+
+    puts "[ATTESTATION DEBUG] Command exit status: #{st.exitstatus}"
+    puts "[ATTESTATION DEBUG] Command output:\n#{out}"
+
     raise Gem::Exception, "Failed to sign gem:\n\n#{out}" unless st.success?
 
+    puts "[ATTESTATION DEBUG] Attestation successful, returning bundle: #{bundle}"
     bundle
   end
 end)
