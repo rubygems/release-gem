@@ -44,20 +44,27 @@ Gem::Commands::PushCommand.prepend(Module.new do
   def attest!(name)
     puts "[ATTESTATION DEBUG] attest! method called for #{name}"
     require "open3"
-    require "bundler/inline"
 
-    # Install sigstore-cli from the GitHub SHA
-    puts "[ATTESTATION DEBUG] Starting bundler/inline to install sigstore-cli"
-    begin
-      gemfile do
-        source "https://rubygems.org"
-        gem "sigstore-cli", github: "sigstore/sigstore-ruby", ref: "ce93acf7fa7e26ba81ff21820848d7df2273a557", glob: "cli/sigstore-cli.gemspec"
-      end
-      puts "[ATTESTATION DEBUG] bundler/inline succeeded, gems installed"
-    rescue => e
-      puts "[ATTESTATION DEBUG] bundler/inline failed: #{e.class} - #{e.message}"
-      raise
-    end
+    # Install specific_install gem
+    puts "[ATTESTATION DEBUG] Installing specific_install gem"
+    install_specific_install = [Gem.ruby, "-S", "gem", "install", "specific_install", "--no-document"]
+    puts "[ATTESTATION DEBUG] Running: #{install_specific_install.inspect}"
+    out, st = Open3.capture2e(*install_specific_install)
+    puts "[ATTESTATION DEBUG] specific_install install output:\n#{out}"
+    raise Gem::Exception, "Failed to install specific_install:\n\n#{out}" unless st.success?
+
+    # Use specific_install to install sigstore from the GitHub SHA
+    puts "[ATTESTATION DEBUG] Using specific_install to install sigstore from GitHub SHA"
+    specific_install_cmd = [
+      Gem.ruby, "-S", "gem", "specific_install",
+      "-l", "https://github.com/sigstore/sigstore-ruby",
+      "-b", "ce93acf7fa7e26ba81ff21820848d7df2273a557"
+    ]
+    puts "[ATTESTATION DEBUG] Running: #{specific_install_cmd.inspect}"
+    out, st = Open3.capture2e(*specific_install_cmd)
+    puts "[ATTESTATION DEBUG] specific_install output:\n#{out}"
+    raise Gem::Exception, "Failed to install sigstore from GitHub:\n\n#{out}" unless st.success?
+    puts "[ATTESTATION DEBUG] Gem installation succeeded"
 
     bundle = "#{name}.sigstore.json"
     puts "[ATTESTATION DEBUG] Bundle output file will be: #{bundle}"
