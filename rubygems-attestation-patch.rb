@@ -35,12 +35,19 @@ Gem::Commands::PushCommand.prepend(Module.new do
 
   def attest!(name)
     require "open3"
+    require "bundler/inline"
+
+    # Install sigstore-ruby from the GitHub SHA
+    gemfile do
+      gem "sigstore-cli", github: "sigstore/sigstore-ruby", ref: "ce93acf7fa7e26ba81ff21820848d7df2273a557", glob: "cli/sigstore-cli.gemspec"
+    end
+
     bundle = "#{name}.sigstore.json"
     env = defined?(Bundler.unbundled_env) ? Bundler.unbundled_env : ENV.to_h
     out, st = Open3.capture2e(
       env,
       Gem.ruby, "-S", "gem", "exec",
-      "sigstore-cli:0.2.1", "sign", name, "--bundle", bundle,
+      "sigstore-cli", "sign", name, "--bundle", bundle,
       unsetenv_others: true
     )
     raise Gem::Exception, "Failed to sign gem:\n\n#{out}" unless st.success?
