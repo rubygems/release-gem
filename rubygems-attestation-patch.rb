@@ -50,6 +50,7 @@ Gem::Commands::PushCommand.prepend(Module.new do
     puts "[ATTESTATION DEBUG] Starting bundler/inline to install sigstore-cli"
     begin
       gemfile do
+        source "https://rubygems.org"
         gem "sigstore-cli", github: "sigstore/sigstore-ruby", ref: "ce93acf7fa7e26ba81ff21820848d7df2273a557", glob: "cli/sigstore-cli.gemspec"
       end
       puts "[ATTESTATION DEBUG] bundler/inline succeeded, gems installed"
