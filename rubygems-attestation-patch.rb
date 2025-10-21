@@ -49,28 +49,17 @@ Gem::Commands::PushCommand.prepend(Module.new do
     out, st = Open3.capture2e(*checkout_cmd)
     raise Gem::Exception, "Failed to checkout SHA:\n\n#{out}" unless st.success?
 
-    # Add sigstore-ruby lib directories to load path
-    sigstore_lib = File.join(tmpdir, "lib")
-    cli_lib = File.join(tmpdir, "cli", "lib")
-    $LOAD_PATH.unshift(sigstore_lib, cli_lib)
-
-    # Require the sigstore CLI code
-    begin
-      require "sigstore/cli"
-    rescue => e
-      raise Gem::Exception, "Failed to load sigstore CLI: #{e.message}"
-    end
+    # Install dependencies with bundler
+    bundle_install_cmd = ["bundle", "install", "--quiet"]
+    out, st = Open3.capture2e(*bundle_install_cmd, chdir: tmpdir)
+    raise Gem::Exception, "Failed to install sigstore dependencies:\n\n#{out}" unless st.success?
 
     bundle = "#{name}.sigstore.json"
 
-    # Call the CLI directly with the sign command
-    begin
-      Sigstore::CLI.start(["sign", name, "--bundle", bundle])
-    rescue SystemExit => e
-      raise Gem::Exception, "Failed to sign gem: CLI exited with status #{e.status}" unless e.status == 0
-    rescue => e
-      raise Gem::Exception, "Failed to sign gem: #{e.message}"
-    end
+    # Run sigstore-cli using bundle exec
+    cli_cmd = ["bundle", "exec", "bin/sigstore-cli", "sign", name, "--bundle", bundle]
+    out, st = Open3.capture2e(*cli_cmd, chdir: tmpdir)
+    raise Gem::Exception, "Failed to sign gem:\n\n#{out}" unless st.success?
 
     bundle
   ensure
