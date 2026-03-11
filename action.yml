@@ -39,6 +39,9 @@ runs:
         EOF
         git config --local credential.helper 'cache --timeout=300'
       shell: bash
+    - name: Fetch tags
+      run: git fetch --tags
+      shell: bash
     - name: Configure trusted publishing credentials
       if: ${{ inputs.setup-trusted-publisher == 'true' }}
       uses: rubygems/configure-rubygems-credentials@v1.0.0
