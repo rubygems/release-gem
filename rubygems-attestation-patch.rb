@@ -40,7 +40,7 @@ Gem::Commands::PushCommand.prepend(Module.new do
     out, st = Open3.capture2e(
       env,
       Gem.ruby, "-S", "gem", "exec",
-      "sigstore-cli:0.2.2", "sign", name, "--bundle", bundle,
+      "sigstore-cli:0.2.3", "sign", name, "--bundle", bundle,
       unsetenv_others: true
     )
     raise Gem::Exception, "Failed to sign gem:\n\n#{out}" unless st.success?
