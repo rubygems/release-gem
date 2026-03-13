@@ -40,7 +40,7 @@ runs:
         git config --local credential.helper 'cache --timeout=300'
       shell: bash
     - name: Fetch tags
-      run: git fetch --tags
+      run: git fetch --tags --force
       shell: bash
     - name: Configure trusted publishing credentials
       if: ${{ inputs.setup-trusted-publisher == 'true' }}
