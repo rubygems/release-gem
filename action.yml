@@ -5,6 +5,10 @@ inputs:
     description: "Whether to poll for the release to be available on RubyGems.org"
     required: false
     default: "true"
+  check-version:
+    description: "Whether to verify the git tag matches the gem's VERSION before releasing"
+    required: false
+    default: "false"
   setup-trusted-publisher:
     description: "Whether to setup the trusted publisher for the gem"
     required: false
@@ -45,6 +49,25 @@ runs:
     - name: Configure trusted publishing credentials
       if: ${{ inputs.setup-trusted-publisher == 'true' }}
       uses: rubygems/configure-rubygems-credentials@v1.0.0
+    - name: Verify tag matches gem version
+      if: ${{ inputs.check-version == 'true' && startsWith(github.ref, 'refs/tags/') }}
+      run: |
+        gem_version=$(ruby -e "spec = Gem::Specification.load(Dir['*.gemspec'].first); puts spec.version")
+        tag="${GITHUB_REF_NAME}"
+        # Strip optional prefix (e.g., "gem-name-" or "gem-name/") and optional "v" prefix
+        tag_version=$(echo "$tag" | sed -E 's/^(.*[-\/])?v//' )
+        # If no prefix was stripped, try without the v requirement
+        if [ "$tag_version" = "$tag" ]; then
+          tag_version="$tag"
+        fi
+
+        if [ "$gem_version" != "$tag_version" ]; then
+          echo "::error::Tag ($tag) version ($tag_version) does not match gem version ($gem_version)"
+          exit 1
+        fi
+
+        echo "Tag ($tag) version ($tag_version) matches gem version ($gem_version)"
+      shell: bash
     - name: Run release rake task
       run: bundle exec rake release
       shell: bash

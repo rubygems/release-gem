@@ -42,6 +42,34 @@ jobs:
       - uses: rubygems/release-gem@v1
 ```
 
+### Inputs
+
+| Input | Description | Default |
+|---|---|---|
+| `await-release` | Whether to poll for the release to be available on RubyGems.org | `true` |
+| `check-version` | Whether to verify the git tag matches the gem's VERSION before releasing | `false` |
+| `setup-trusted-publisher` | Whether to setup the trusted publisher for the gem | `true` |
+| `attestations` | Enable experimental support for sigstore attestations | `true` |
+
+### Version Check
+
+When `check-version` is enabled, the action verifies that the git tag triggering the
+release matches the version in your gemspec before publishing. This prevents accidentally
+publishing a gem whose version does not match the release tag.
+
+```yaml
+- uses: rubygems/release-gem@v1
+  with:
+    check-version: true
+```
+
+The check supports common tag formats:
+- `v1.2.3` (standard Bundler convention)
+- `1.2.3` (bare version)
+- `my-gem-v1.2.3` or `my-gem/v1.2.3` (monorepo-style prefixes)
+
+If the workflow is not triggered by a tag push, the check is skipped.
+
 ### Requirements
 
 For now, this action makes several assumptions about your project:
