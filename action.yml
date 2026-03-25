@@ -1,6 +1,13 @@
 name: "Release Gem"
 description: "Upload gems to RubyGems.org"
 inputs:
+  token:
+    description: >-
+      GitHub token used to authenticate git operations (e.g. pushing the release tag).
+      Defaults to the built-in github.token. Override with a PAT or GitHub App token
+      when tag push protection rules require a specific actor or bypass permission.
+    required: false
+    default: ${{ github.token }}
   await-release:
     description: "Whether to poll for the release to be available on RubyGems.org"
     required: false
@@ -34,7 +41,7 @@ runs:
         protocol=https
         host=github.com
         username=x-access-token
-        password=${{ github.token }}
+        password=${{ inputs.token }}
 
         EOF
         git config --local credential.helper 'cache --timeout=300'
