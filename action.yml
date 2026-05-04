@@ -60,7 +60,7 @@ runs:
       run: bundle exec rake release
       shell: bash
       env:
-        RUBYOPT: "${{ inputs.attestations == 'true' && format('-r{0}/rubygems-attestation-patch.rb {1}', github.action_path, env.RUBYOPT) || env.RUBYOPT }}"
+        RUBYOPT: "${{ inputs.attestations == 'true' && format('-rbundler/setup -r{0}/rubygems-attestation-patch.rb {1}', github.action_path, env.RUBYOPT) || env.RUBYOPT }}"
       working-directory: ${{ inputs.working-directory }}
     - name: Wait for release to propagate
       if: ${{ inputs.await-release == 'true' }}
