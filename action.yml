@@ -21,6 +21,8 @@ inputs:
       [EXPERIMENTAL]
       Enable experimental support for sigstore attestations.
       Only works with RubyGems.org via Trusted Publishing.
+      No effect on RubyGems versions that sign on their own; they attest
+      whether or not this is set.
     required: false
     default: "true"
   working-directory:

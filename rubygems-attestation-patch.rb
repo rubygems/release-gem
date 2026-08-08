@@ -5,6 +5,16 @@ return unless defined?(Gem)
 
 require "rubygems/commands/push_command"
 
+# RubyGems 4.1.0.dev signs on its own, and its #send_push_request delegates to
+# a #send_push_request_with_attestation of its own.  Prepending a method of
+# that name in front of it makes the two call each other forever: the patch
+# delegates up with `super`, RubyGems delegates back down by name, and every
+# lap signs the gem again.  Leave the newer RubyGems to it.
+if Gem::Commands::PushCommand.private_method_defined?(:send_push_request_with_attestation) ||
+   Gem::Commands::PushCommand.method_defined?(:send_push_request_with_attestation)
+  return
+end
+
 Gem::Commands::PushCommand.prepend(Module.new do
   def send_push_request(name, args)
     return super if options[:attestations]&.any? || @host != "https://rubygems.org"
