@@ -26,9 +26,21 @@ inputs:
     required: false
     default: "true"
   working-directory:
-    description: "The working directory to run the release rake task in"
+    description: "The working directory to run the rake tasks in"
     required: false
     default: ""
+  tag:
+    description: "Create and push a git release tag which is in the form #{prefix}/v#{version}."
+    required: false
+    default: "true"
+  build:
+    description: "Build the gem package"
+    required: false
+    default: "true"
+  publish:
+    description: "Publish the gem to the configured source"
+    required: false
+    default: "true"
 outputs: {}
 branding:
   color: "red"
@@ -58,14 +70,36 @@ runs:
     - name: Configure trusted publishing credentials
       if: ${{ inputs.setup-trusted-publisher == 'true' }}
       uses: rubygems/configure-rubygems-credentials@dc5a8d8553e6ee01fc26761a49e99e733d17954a # v2.1.0
+    # Use the normal release task when all three phases are enabled.
     - name: Run release rake task
+      if: ${{ inputs.tag == 'true' && inputs.build == 'true' && inputs.publish == 'true' }}
       run: bundle exec rake release
       shell: bash
       env:
         RUBYOPT: "${{ inputs.attestations == 'true' && format('-r{0}/rubygems-attestation-patch.rb {1}', github.action_path, env.RUBYOPT) || env.RUBYOPT }}"
       working-directory: ${{ inputs.working-directory }}
+    # Otherwise execute the requested phases individually.
+    - name: Build gem
+      if: ${{ !(inputs.tag == 'true' && inputs.publish == 'true') && inputs.build == 'true' }}
+      run: bundle exec rake build
+      shell: bash
+      env:
+        RUBYOPT: "${{ inputs.attestations == 'true' && format('-r{0}/rubygems-attestation-patch.rb {1}', github.action_path, env.RUBYOPT) || env.RUBYOPT }}"
+      working-directory: ${{ inputs.working-directory }}
+    - name: Create git tag
+      if: ${{ !(inputs.build == 'true' && inputs.publish == 'true') && inputs.tag == 'true' }}
+      run: bundle exec rake release:source_control_push
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+    - name: Publish gem
+      if: ${{ !(inputs.tag == 'true' && inputs.build == 'true') && inputs.publish == 'true' }}
+      run: bundle exec rake release:rubygem_push
+      shell: bash
+      env:
+        RUBYOPT: "${{ inputs.attestations == 'true' && format('-r{0}/rubygems-attestation-patch.rb {1}', github.action_path, env.RUBYOPT) || env.RUBYOPT }}"
+      working-directory: ${{ inputs.working-directory }}
     - name: Wait for release to propagate
-      if: ${{ inputs.await-release == 'true' }}
+      if: ${{ inputs.await-release == 'true' && inputs.publish == 'true' }}
       run: gem exec rubygems-await pkg/*.gem
       shell: bash
       working-directory: ${{ inputs.working-directory }}
