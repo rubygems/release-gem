@@ -7,6 +7,7 @@
 require "net/http"
 require "rubygems/package"
 
+$stdout.sync = true
 deadline = Time.now + 300
 
 pending = ARGV.flat_map do |path|
