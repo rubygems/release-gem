@@ -21,7 +21,7 @@ end
 
 loop do
   pending.reject! do |uri, pattern|
-    response = Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
+    response = Net::HTTP.start(uri.host, uri.port, use_ssl: true, open_timeout: 10, read_timeout: 10) do |http|
       pattern ? http.get(uri.path) : http.head(uri.path)
     end
     found = response.is_a?(Net::HTTPSuccess) && (pattern.nil? || pattern.match?(response.body))
