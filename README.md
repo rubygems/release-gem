@@ -42,6 +42,17 @@ jobs:
       - uses: rubygems/release-gem@v1
 ```
 
+### Pushing a new gem
+
+To push the first release of a new gem via a pending trusted publisher,
+pass the ID of the RubyGems.org account that will own the gem with the `owner` input.
+
+```yaml
+- uses: rubygems/release-gem@v1
+  with:
+    owner: "12345"
+```
+
 ### Requirements
 
 For now, this action makes several assumptions about your project:
