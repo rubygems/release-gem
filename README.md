@@ -55,3 +55,7 @@ For now, this action makes several assumptions about your project:
 [bundler release tasks]: https://bundler.io/guides/creating_gem.html#releasing-the-gem
 [configured on RubyGems.org]: https://guides.rubygems.org/trusted-publishing/adding-a-publisher/
 [trusted publishing]: https://guides.rubygems.org/trusted-publishing
+
+## License
+
+This action is available under the terms of the [MIT License](LICENSE.txt).
